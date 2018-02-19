@@ -1,5 +1,3 @@
-//const express = require('express');
-
 const checkMillionDollarIdea = (req, res, next) => {
 
   const weeks = req.body.numWeeks;

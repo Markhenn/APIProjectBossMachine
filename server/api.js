@@ -9,6 +9,8 @@ createMeeting, getAllFromDatabase, getFromDatabaseById, addToDatabase, updateIns
 //this imports all functions from db.js
 const Helper = require('./db.js');
 
+const checkMillionDollarIdea = require('./checkMillionDollarIdea.js');
+
 module.exports = apiRouter;
 
 // ------ Start of routing ------
@@ -66,15 +68,6 @@ apiRouter.delete('/minions/:minionId', (req, res, next) => {
 
 // ------ Routing Ideas -----
 
-/*
-/api/ideas
-GET /api/ideas to get an array of all ideas.
-POST /api/ideas to create a new idea and save it to the database.
-GET /api/ideas/:ideaId to get a single idea by id.
-PUT /api/ideas/:ideaId to update a single idea by id.
-DELETE /api/ideas/:ideaId to delete a single idea by id.
-*/
-
 apiRouter.get('/ideas', (req, res, next) => {
   const allMinions = Helper.getAllFromDatabase('ideas');
   res.send(allMinions);
@@ -82,12 +75,12 @@ apiRouter.get('/ideas', (req, res, next) => {
 
 apiRouter.get('/ideas/:ideaId', (req, res, next) => {
 
-  const minionById = Helper.getFromDatabaseById('ideas', req.params.ideaId);
+  const ideaById = Helper.getFromDatabaseById('ideas', req.params.ideaId);
 
-  if (minionById === -1 || minionById === undefined) {
+  if (ideaById === -1 || ideaById === undefined) {
     res.status(404).send('Idea does not exist');
   } else {
-    res.send(minionById);
+    res.send(ideaById);
   }
 });
 
@@ -98,12 +91,13 @@ apiRouter.put('/ideas/:ideaId', (req, res, next) => {
   if (minionById === -1 || minionById === undefined) {
     res.status(404).send('Idea does not exist');
   } else {
-    const minionUpdate = Helper.updateInstanceInDatabase('ideas', req.body);
-    res.send(minionUpdate);
+    const ideaUpdate = Helper.updateInstanceInDatabase('ideas', req.body);
+    res.send(ideaUpdate);
   }
 });
 
-apiRouter.post('/ideas', (req, res, next) => {
+apiRouter.post('/ideas', checkMillionDollarIdea, (req, res, next) => {
+
     const newIdea = Helper.addToDatabase('ideas', req.body);
     res.status(201).send(newIdea);
 });
@@ -122,13 +116,6 @@ apiRouter.delete('/ideas/:ideaId', (req, res, next) => {
 
 // ------ Routing Meetings -----
 
-/*
-/api/meetings
-GET /api/meetings to get an array of all meetings.
-POST /api/meetings to create a new meeting and save it to the database.
-DELETE /api/meetings to delete all meetings from the database.
-*/
-
 apiRouter.get('/meetings', (req, res, next) => {
   const allmeetings = Helper.getAllFromDatabase('meetings');
   res.send(allmeetings);
@@ -145,4 +132,75 @@ apiRouter.delete('/meetings', (req, res, next) => {
 
   res.status(204).send();
 
+});
+
+// ------ Routing Minion Work -----
+
+/*
+Work:
+id: string
+title: string
+description: string
+hours: number
+minionId: string
+Routes required:
+
+GET /api/minions/:minionId/work to get an array of all work for the specified minon.
+POST /api/minions/:minionId/work to create a new work object and save it to the database.
+PUT /api/minions/:minionId/work/:workId to update a single work by id.
+DELETE /api/minions/:minionId/work/:workId to delete a single work by id.
+*/
+
+apiRouter.get('/minions/:minionId/work', (req, res, next) => {
+
+  const minionById = Helper.getFromDatabaseById('minions', req.params.minionId);
+
+  if (minionById === -1 || minionById === undefined) {
+    res.status(404).send('Minion does not exist');
+  } else {
+
+    //this is to find the work for a minion id
+    const allWork = Helper.getAllFromDatabase('work');
+    const allWorkByMinion = allWork.filter(work => {
+      return work.minionId === req.params.minionId;
+    });
+    res.send(allWorkByMinion);
+  }
+});
+
+apiRouter.put('/minions/:minionId/work/:workId', (req, res, next) => {
+
+  const minionById = Helper.getFromDatabaseById('minions', req.params.minionId);
+
+  if (minionById === -1 || minionById === undefined) {
+    res.status(404).send('Minion does not exist');
+  } else {
+
+    if (minionById.id !== req.body.minionId) {
+      return res.status(400).send();
+    }
+    const workUpdate = Helper.updateInstanceInDatabase('work', req.body);
+
+    res.send(workUpdate);
+  }
+});
+
+apiRouter.post('/minions/:minionId/work', (req, res, next) => {
+    const newWork = Helper.addToDatabase('work', req.body);
+    res.status(201).send(newWork);
+});
+
+apiRouter.delete('/minions/:minionId/work/:workId', (req, res, next) => {
+
+  const minionById = Helper.getFromDatabaseById('work', req.params.minionId);
+
+  if (minionById === -1 || minionById === undefined) {
+    res.status(404).send('Minion does not exist');
+
+  } else {
+
+    const workDelete = Helper.deleteFromDatabasebyId('work', req.params.workId);
+
+    res.status(204).send('No content');
+  }
 });

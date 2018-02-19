@@ -17,6 +17,38 @@ module.exports = apiRouter;
 
 // later put each part, minions, ideas, meetings in its own file and link from here
 
+//This checks if the id is valid for which ever path is cheked
+const checkValidId = (req, res, next) => {
+
+  const name = req.path.split('/').filter(segment => segment)[0];
+  console.log(name);
+
+  //index has to be a string
+  let index;
+  console.log(typeof index);
+
+  switch (name) {
+    case 'minions':
+      index = String(req.params.minionId);
+      console.log(index);
+    case 'ideas':
+      index = req.params.ideaId;
+    case 'work':
+      index = req.params.workId;
+    default:
+
+  }
+
+  const itemById = Helper.getFromDatabaseById('minions', index);
+  console.log(itemById);
+
+  if (req.itemById === -1 || req.itemById === undefined) {
+    return res.status(404).send(`${name} does not exist`);
+  }
+
+  next();
+};
+
 
 // ------ Routing Minions -----
 
@@ -26,15 +58,12 @@ apiRouter.get('/minions', (req, res, next) => {
   res.send(allMinions);
 });
 
-apiRouter.get('/minions/:minionId', (req, res, next) => {
+apiRouter.get('/minions/:minionId', checkValidId, (req, res, next) => {
 
-  const minionById = Helper.getFromDatabaseById('minions', req.params.minionId);
+  res.send(req.itemById);
 
-  if (minionById === -1 || minionById === undefined) {
-    res.status(404).send('Minion does not exist');
-  } else {
-    res.send(minionById);
-  }
+  //  res.send(minionById);
+
 });
 
 apiRouter.put('/minions/:minionId', (req, res, next) => {
@@ -136,27 +165,13 @@ apiRouter.delete('/meetings', (req, res, next) => {
 
 // ------ Routing Minion Work -----
 
-/*
-Work:
-id: string
-title: string
-description: string
-hours: number
-minionId: string
-Routes required:
-
-GET /api/minions/:minionId/work to get an array of all work for the specified minon.
-POST /api/minions/:minionId/work to create a new work object and save it to the database.
-PUT /api/minions/:minionId/work/:workId to update a single work by id.
-DELETE /api/minions/:minionId/work/:workId to delete a single work by id.
-*/
-
 apiRouter.get('/minions/:minionId/work', (req, res, next) => {
 
   const minionById = Helper.getFromDatabaseById('minions', req.params.minionId);
 
   if (minionById === -1 || minionById === undefined) {
     res.status(404).send('Minion does not exist');
+
   } else {
 
     //this is to find the work for a minion id

@@ -2,8 +2,6 @@ const express = require('express');
 const apiRouter = express.Router();
 
 
-
-
 /* all functions from db.js
 createMeeting, getAllFromDatabase, getFromDatabaseById, addToDatabase, updateInstanceInDatabase, deleteFromDatabasebyId, deleteAllFromDatabase
 */
@@ -17,13 +15,6 @@ module.exports = apiRouter;
 
 // later put each part, minions, ideas, meetings in its own file and link from here
 
-/* test to see the click
-apiRouter.use((req, res, next) => {
-  console.log('some click to call the router!');
-  next()
-})
-
-*/
 
 // ------ Routing Minions -----
 
@@ -113,8 +104,8 @@ apiRouter.put('/ideas/:ideaId', (req, res, next) => {
 });
 
 apiRouter.post('/ideas', (req, res, next) => {
-    const newMinion = Helper.addToDatabase('ideas', req.body);
-    res.status(201).send(newMinion);
+    const newIdea = Helper.addToDatabase('ideas', req.body);
+    res.status(201).send(newIdea);
 });
 
 apiRouter.delete('/ideas/:ideaId', (req, res, next) => {

@@ -17,33 +17,31 @@ module.exports = apiRouter;
 
 // later put each part, minions, ideas, meetings in its own file and link from here
 
-//This checks if the id is valid for which ever path is cheked
-const checkValidId = (req, res, next) => {
+const findIndexByName = (name, request) => {
 
-  const name = req.path.split('/').filter(segment => segment)[0];
-  console.log(name);
-
-  //index has to be a string
   let index;
-  console.log(typeof index);
 
   switch (name) {
     case 'minions':
-      index = String(req.params.minionId);
-      console.log(index);
+      return index = request.params.minionId;
     case 'ideas':
-      index = req.params.ideaId;
+      return index = request.params.ideaId;
     case 'work':
-      index = req.params.workId;
+      return index = request.params.workId;
     default:
-
   }
+};
 
-  const itemById = Helper.getFromDatabaseById('minions', index);
-  console.log(itemById);
+//This checks if the id is valid for which ever path is cheked
+const checkValidId = (req, res, next) => {
+
+  req.arrayName = req.path.split('/').filter(segment => segment)[0];
+  req.index = findIndexByName(req.arrayName, req);
+
+  req.itemById = Helper.getFromDatabaseById(req.arrayName, req.index);
 
   if (req.itemById === -1 || req.itemById === undefined) {
-    return res.status(404).send(`${name} does not exist`);
+    return res.status(404).send(`${req.arrayName} does not exist`);
   }
 
   next();
@@ -59,23 +57,12 @@ apiRouter.get('/minions', (req, res, next) => {
 });
 
 apiRouter.get('/minions/:minionId', checkValidId, (req, res, next) => {
-
   res.send(req.itemById);
-
-  //  res.send(minionById);
-
 });
 
-apiRouter.put('/minions/:minionId', (req, res, next) => {
-
-  const minionById = Helper.getFromDatabaseById('minions', req.params.minionId);
-
-  if (minionById === -1 || minionById === undefined) {
-    res.status(404).send('Minion does not exist');
-  } else {
-    const minionUpdate = Helper.updateInstanceInDatabase('minions', req.body);
+apiRouter.put('/minions/:minionId', checkValidId, (req, res, next) => {
+    const minionUpdate = Helper.updateInstanceInDatabase(req.arrayName, req.body);
     res.send(minionUpdate);
-  }
 });
 
 apiRouter.post('/minions', (req, res, next) => {
@@ -83,16 +70,9 @@ apiRouter.post('/minions', (req, res, next) => {
     res.status(201).send(newMinion);
 });
 
-apiRouter.delete('/minions/:minionId', (req, res, next) => {
-
-  const minionById = Helper.getFromDatabaseById('minions', req.params.minionId);
-
-  if (minionById === -1 || minionById === undefined) {
-    res.status(404).send('Minion does not exist');
-  } else {
-    const minionDelete = Helper.deleteFromDatabasebyId('minions', req.params.minionId);
+apiRouter.delete('/minions/:minionId', checkValidId, (req, res, next) => {
+    Helper.deleteFromDatabasebyId(req.arrayName, req.index);
     res.status(204).send('No content');
-  }
 });
 
 // ------ Routing Ideas -----
